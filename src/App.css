@@ -1,0 +1,37 @@
+.app-root {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 10px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: #1e293b;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.kpi-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.kpi-subtitle {
+  font-size: 10.5px;
+  opacity: 0.55;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.kpi-variance {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
