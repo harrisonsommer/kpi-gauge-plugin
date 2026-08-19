@@ -86,7 +86,9 @@ function App() {
   const color = statusColorFor(metrics.status, settings);
 
   const formattedActual = formatValue(actualValue, settings.numberFormat, settings.decimals, actualColumnInfo);
-  const formattedBudget = formatValue(budgetValue, settings.numberFormat, settings.decimals, budgetColumnInfo);
+  // Compact, not full-precision — this renders inside the arc's interior,
+  // which narrows quickly above the baseline.
+  const compactBudget = formatScaleLabel(budgetValue, settings.numberFormat, budgetColumnInfo);
   const varianceLabel = formatSignedPct(metrics.variancePct, settings.decimals);
   const minLabel = formatScaleLabel(0, settings.numberFormat, actualColumnInfo);
   const maxLabel = formatScaleLabel(metrics.scaleMax, settings.numberFormat, actualColumnInfo);
@@ -107,7 +109,7 @@ function App() {
         targetColor={settings.targetColor}
         thickness={settings.gaugeThickness}
         centerValue={formattedActual}
-        caption={settings.showBudgetLabel ? `Budget ${formattedBudget}` : undefined}
+        caption={settings.showBudgetLabel ? `Budget ${compactBudget}` : undefined}
         minLabel={minLabel}
         maxLabel={maxLabel}
       />

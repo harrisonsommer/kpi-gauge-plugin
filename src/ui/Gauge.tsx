@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react';
-
 export interface GaugeProps {
   /** Actual's position on the gauge's 0..scaleMax scale, clamped 0..1. */
   actualFraction: number;
@@ -14,7 +12,9 @@ export interface GaugeProps {
   /** Width of the gauge; height is derived (a semicircle plus label space). */
   size?: number;
   centerValue: string;
-  /** e.g. "Budget $39,818,339" — shown small, under the center value. */
+  /** e.g. "Budget $39.8M" — shown small, stacked above the center value,
+   * inside the arc. Keep this short (compact-formatted) — the interior
+   * space narrows quickly above the baseline. */
   caption?: string;
   /** Formatted scale endpoints (e.g. "0" / "$45.0M"), shown under the arc. */
   minLabel?: string;
@@ -42,7 +42,9 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
 /** A semicircular speedometer-style gauge: a fixed 0..scaleMax track, a
  * colored arc filled to Actual's position, and a target-line tick marking
  * Budget's position — so Budget reads as a target to hit, not a second
- * bar. No charting library needed for one arc + one tick. */
+ * bar. Actual and Budget are labeled inside the arc's interior (near the
+ * flat baseline, where the half-disk is widest) rather than below the
+ * gauge. No charting library needed for one arc + one tick. */
 export function Gauge({
   actualFraction,
   budgetFraction,
@@ -76,18 +78,27 @@ export function Gauge({
   const tickOuter = polarToCartesian(cx, cy, r + thickness / 2 + 4, budgetAngle);
 
   // Shrinks the center value's font size for long formatted strings (large
-  // currency amounts, etc.) so they stay inside the gauge's width.
-  const baseFontSize = size * 0.155;
-  const COMFORTABLE_CHARS = 7;
+  // currency amounts, etc.) so they stay inside the arc's interior — which
+  // is narrower than the gauge's full width, since it's bounded by the
+  // inner edge of the arc's stroke, not the outer edge.
+  const baseFontSize = size * 0.135;
+  const COMFORTABLE_CHARS = 6;
   const fontSize =
     centerValue.length > COMFORTABLE_CHARS
-      ? Math.max(size * 0.08, baseFontSize * (COMFORTABLE_CHARS / centerValue.length))
+      ? Math.max(size * 0.075, baseFontSize * (COMFORTABLE_CHARS / centerValue.length))
       : baseFontSize;
+  const captionFontSize = size * 0.075;
 
-  const labelStyle: CSSProperties = { fontSize: 10, fill: '#94a3b8' };
+  // Stacked bottom-up from the baseline (widest point of the interior
+  // half-disk): the big Actual value sits lowest, the smaller Budget
+  // caption sits just above it.
+  const actualY = cy - 14;
+  const captionY = actualY - fontSize / 2 - captionFontSize / 2 - 6;
+
+  const labelStyle = { fontSize: 10, fill: '#94a3b8' };
 
   return (
-    <div style={{ width: svgWidth, display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+    <div style={{ width: svgWidth, flexShrink: 0 }}>
       <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
         <path d={trackPath} fill="none" stroke={trackColor} strokeWidth={thickness} strokeLinecap="round" />
         <path
@@ -117,11 +128,21 @@ export function Gauge({
             {maxLabel}
           </text>
         )}
+        {caption && (
+          <text x={cx} y={captionY} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: captionFontSize, fill: '#64748b' }}>
+            {caption}
+          </text>
+        )}
+        <text
+          x={cx}
+          y={actualY}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{ fontSize, fontWeight: 700, fill: color }}
+        >
+          {centerValue}
+        </text>
       </svg>
-      <div style={{ fontSize: Math.round(fontSize), fontWeight: 700, color, lineHeight: 1.1, textAlign: 'center' }}>
-        {centerValue}
-      </div>
-      {caption && <div style={{ fontSize: Math.round(size * 0.075), opacity: 0.55, marginTop: 2, textAlign: 'center' }}>{caption}</div>}
     </div>
   );
 }

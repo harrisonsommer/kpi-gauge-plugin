@@ -1,6 +1,6 @@
 # KPI Gauge — a Sigma plugin
 
-A [Sigma Computing](https://sigmacomputing.com) plugin that renders a single **Actual-vs-Budget KPI gauge**: a semicircular speedometer-style arc, filled to Actual's position on a 0..scale, colored green/gray/red by how far Actual is from Budget — with Budget drawn as an explicit **target-line tick** on the same arc, rather than a second bar. A big variance % callout sits above the gauge, and the Actual value sits below it. Built to reproduce the "vs Budget" gauge tiles (Occupancy, Rent, Revenue, NOI, Expense, Vacates, etc.) as a reusable, brandable plugin instead of Sigma's native chart.
+A [Sigma Computing](https://sigmacomputing.com) plugin that renders a single **Actual-vs-Budget KPI gauge**: a semicircular speedometer-style arc, filled to Actual's position on a 0..scale, colored green/gray/red by how far Actual is from Budget — with Budget drawn as an explicit **target-line tick** on the same arc, rather than a second bar. A big variance % callout sits above the gauge, and the Actual/Budget values are labeled inside the arc itself, near its base. Built to reproduce the "vs Budget" gauge tiles (Occupancy, Rent, Revenue, NOI, Expense, Vacates, etc.) as a reusable, brandable plugin instead of Sigma's native chart.
 
 Drop one instance of this plugin into a workbook per KPI (the same way you'd place 12 separate native gauge charts) — each instance is configured independently with its own data source, Actual/Budget columns, title, and good/bad direction.
 
@@ -75,8 +75,8 @@ For a `higherIsBetter` metric, signed-goodness is just the variance %. For a `lo
 
 The arc is a fixed `0..scaleMax` scale, where `scaleMax = max(Actual, Budget) * 1.15` — 15% of headroom past whichever of the two is larger, so neither marker ever sits at the very end of the arc. Both Actual and Budget are positioned on that same scale:
 
-- **Actual** fills the arc (colored by status) from the left end up to its position.
-- **Budget** is drawn as a short dark tick line crossing the arc at its position — a target to hit, not a second bar.
+- **Actual** fills the arc (colored by status) from the left end up to its position, and is labeled in large text inside the arc's interior, near the baseline.
+- **Budget** is drawn as a short dark tick line crossing the arc at its position — a target to hit, not a second bar — and is labeled in smaller text just above the Actual label, using compact notation (e.g. `Budget $39.8M`) since the interior narrows quickly above the baseline.
 
 The scale's endpoints (`0` and `scaleMax`, compactly formatted, e.g. `$45.8M`) are labeled under the arc for orientation.
 
