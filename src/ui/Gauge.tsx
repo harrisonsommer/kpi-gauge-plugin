@@ -11,11 +11,12 @@ export interface GaugeProps {
   thickness?: number;
   /** Width of the gauge; height is derived (a semicircle plus label space). */
   size?: number;
+  /** Full-precision formatted Actual value, e.g. "$22,137,018". */
   centerValue: string;
-  /** e.g. "Budget $39.8M" — shown small, stacked above the center value,
-   * inside the arc. Keep this short (compact-formatted) — the interior
-   * space narrows quickly above the baseline. */
-  caption?: string;
+  /** Full-precision formatted Budget value, e.g. "$335,765" — labeled
+   * "Budget" above it, stacked above the Actual value/label pair. Omit to
+   * hide both the label and value. */
+  budgetValue?: string;
   /** Formatted scale endpoints (e.g. "0" / "$45.0M"), shown under the arc. */
   minLabel?: string;
   maxLabel?: string;
@@ -39,12 +40,32 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
   return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
 }
 
+/** Half-width of the arc's interior (inside the stroke's inner edge) at a
+ * given vertical distance `dy` above the baseline — the half-disk narrows
+ * as dy grows, reaching 0 at dy === innerR. */
+function halfWidthAt(innerR: number, dy: number): number {
+  return dy >= innerR ? 0 : Math.sqrt(innerR * innerR - dy * dy);
+}
+
+/** Shrinks `baseSize` down to `minSize` (never below it) so `text` fits
+ * within `availableWidth`, assuming an average glyph width of `charWidthRatio
+ * * fontSize`. Returns `baseSize` unchanged if it already fits. */
+function fitFontSize(text: string, availableWidth: number, baseSize: number, minSize: number, charWidthRatio = 0.6): number {
+  const naturalWidth = text.length * baseSize * charWidthRatio;
+  if (naturalWidth <= availableWidth || text.length === 0) return baseSize;
+  const fitted = availableWidth / (text.length * charWidthRatio);
+  return Math.max(minSize, fitted);
+}
+
 /** A semicircular speedometer-style gauge: a fixed 0..scaleMax track, a
  * colored arc filled to Actual's position, and a target-line tick marking
  * Budget's position — so Budget reads as a target to hit, not a second
- * bar. Actual and Budget are labeled inside the arc's interior (near the
- * flat baseline, where the half-disk is widest) rather than below the
- * gauge. No charting library needed for one arc + one tick. */
+ * bar. Both values are labeled inside the arc's interior, stacked
+ * bottom-up (Actual value + its label closest to the baseline, where the
+ * half-disk is widest; Budget's label + value above that). Font sizes
+ * shrink to fit the available width at each line's height, since the
+ * interior narrows quickly above the baseline. No charting library needed
+ * for one arc + one tick. */
 export function Gauge({
   actualFraction,
   budgetFraction,
@@ -54,7 +75,7 @@ export function Gauge({
   thickness = 12,
   size = 160,
   centerValue,
-  caption,
+  budgetValue,
   minLabel,
   maxLabel,
 }: GaugeProps) {
@@ -64,6 +85,7 @@ export function Gauge({
   const cy = r + thickness / 2;
   const svgWidth = size + LABEL_MARGIN * 2;
   const svgHeight = cy + 18; // arc + room for the min/max scale labels below it
+  const innerR = r - thickness / 2; // inner edge of the arc's stroke — the interior text must stay within this
 
   const clampedActual = Math.max(0, Math.min(1, actualFraction));
   const clampedBudget = Math.max(0, Math.min(1, budgetFraction));
@@ -77,26 +99,43 @@ export function Gauge({
   const tickInner = polarToCartesian(cx, cy, r - thickness / 2 - 4, budgetAngle);
   const tickOuter = polarToCartesian(cx, cy, r + thickness / 2 + 4, budgetAngle);
 
-  // Shrinks the center value's font size for long formatted strings (large
-  // currency amounts, etc.) so they stay inside the arc's interior — which
-  // is narrower than the gauge's full width, since it's bounded by the
-  // inner edge of the arc's stroke, not the outer edge.
-  const baseFontSize = size * 0.135;
-  const COMFORTABLE_CHARS = 6;
-  const fontSize =
-    centerValue.length > COMFORTABLE_CHARS
-      ? Math.max(size * 0.075, baseFontSize * (COMFORTABLE_CHARS / centerValue.length))
-      : baseFontSize;
-  const captionFontSize = size * 0.07;
-  const actualLabelFontSize = size * 0.06;
-
   // Stacked bottom-up from the baseline (widest point of the interior
-  // half-disk, where there's the most room): the "Actual" label sits
-  // lowest, the big Actual value above it, and the smaller Budget caption
-  // above that — each line has less horizontal room than the one below it.
-  const actualLabelY = cy - 10;
-  const actualY = actualLabelY - actualLabelFontSize / 2 - fontSize / 2 - 3;
-  const captionY = actualY - fontSize / 2 - captionFontSize / 2 - 4;
+  // half-disk): "Actual" label, then the big Actual value, then the Budget
+  // value, then the "Budget" label — each line has less horizontal room
+  // than the one below it. Positions are estimated using each line's base
+  // (unshrunk) font size first, then font sizes are fitted to the width
+  // available at those estimated positions, then final positions are
+  // recomputed from the fitted sizes — since fitting only ever shrinks a
+  // size, the final stack is never taller than the estimate, so this never
+  // ends up tighter than what was checked.
+  const BASELINE_GAP = 3;
+  const LINE_GAP = 3;
+  const actualLabelBase = size * 0.052;
+  const budgetLabelBase = size * 0.052;
+  const actualValueBase = size * 0.12;
+  const budgetValueBase = size * 0.1;
+  const actualValueMin = size * 0.07;
+  const budgetValueMin = size * 0.055;
+  const labelMin = size * 0.04;
+
+  const estDyActualLabel = BASELINE_GAP + actualLabelBase / 2;
+  const estDyActualValue = estDyActualLabel + actualLabelBase / 2 + actualValueBase / 2 + LINE_GAP;
+  const estDyBudgetValue = estDyActualValue + actualValueBase / 2 + budgetValueBase / 2 + LINE_GAP;
+  const estDyBudgetLabel = estDyBudgetValue + budgetValueBase / 2 + budgetLabelBase / 2 + LINE_GAP;
+
+  const actualLabelSize = fitFontSize('Actual', halfWidthAt(innerR, estDyActualLabel) * 1.8, actualLabelBase, labelMin);
+  const actualValueSize = fitFontSize(centerValue, halfWidthAt(innerR, estDyActualValue) * 1.8, actualValueBase, actualValueMin);
+  const budgetValueSize = budgetValue
+    ? fitFontSize(budgetValue, halfWidthAt(innerR, estDyBudgetValue) * 1.8, budgetValueBase, budgetValueMin)
+    : 0;
+  const budgetLabelSize = budgetValue
+    ? fitFontSize('Budget', halfWidthAt(innerR, estDyBudgetLabel) * 1.8, budgetLabelBase, labelMin)
+    : 0;
+
+  const dyActualLabel = BASELINE_GAP + actualLabelSize / 2;
+  const dyActualValue = dyActualLabel + actualLabelSize / 2 + actualValueSize / 2 + LINE_GAP;
+  const dyBudgetValue = dyActualValue + actualValueSize / 2 + budgetValueSize / 2 + LINE_GAP;
+  const dyBudgetLabel = dyBudgetValue + budgetValueSize / 2 + budgetLabelSize / 2 + LINE_GAP;
 
   const labelStyle = { fontSize: 10, fill: '#94a3b8' };
 
@@ -131,26 +170,43 @@ export function Gauge({
             {maxLabel}
           </text>
         )}
-        {caption && (
-          <text x={cx} y={captionY} textAnchor="middle" dominantBaseline="middle" style={{ fontSize: captionFontSize, fill: '#64748b' }}>
-            {caption}
+        {budgetValue && (
+          <text
+            x={cx}
+            y={cy - dyBudgetLabel}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            style={{ fontSize: budgetLabelSize, fill: '#64748b' }}
+          >
+            Budget
+          </text>
+        )}
+        {budgetValue && (
+          <text
+            x={cx}
+            y={cy - dyBudgetValue}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            style={{ fontSize: budgetValueSize, fontWeight: 600, fill: '#64748b' }}
+          >
+            {budgetValue}
           </text>
         )}
         <text
           x={cx}
-          y={actualY}
+          y={cy - dyActualValue}
           textAnchor="middle"
           dominantBaseline="middle"
-          style={{ fontSize, fontWeight: 700, fill: color }}
+          style={{ fontSize: actualValueSize, fontWeight: 700, fill: color }}
         >
           {centerValue}
         </text>
         <text
           x={cx}
-          y={actualLabelY}
+          y={cy - dyActualLabel}
           textAnchor="middle"
           dominantBaseline="middle"
-          style={{ fontSize: actualLabelFontSize, fill: '#64748b' }}
+          style={{ fontSize: actualLabelSize, fill: '#64748b' }}
         >
           Actual
         </text>
