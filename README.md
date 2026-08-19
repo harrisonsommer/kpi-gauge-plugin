@@ -75,8 +75,8 @@ For a `higherIsBetter` metric, signed-goodness is just the variance %. For a `lo
 
 The arc is a fixed `0..scaleMax` scale, where `scaleMax = max(Actual, Budget) * 1.15` — 15% of headroom past whichever of the two is larger, so neither marker ever sits at the very end of the arc. Both Actual and Budget are positioned on that same scale:
 
-- **Actual** fills the arc (colored by status) from the left end up to its position, and is labeled in large text inside the arc's interior, near the baseline.
-- **Budget** is drawn as a short dark tick line crossing the arc at its position — a target to hit, not a second bar — and is labeled in smaller text just above the Actual label, using compact notation (e.g. `Budget $39.8M`) since the interior narrows quickly above the baseline.
+- **Actual** fills the arc (colored by status) from the left end up to its position. It's labeled in large text inside the arc's interior, just above the baseline, with a small "Actual" caption directly beneath it.
+- **Budget** is drawn as a short dark tick line crossing the arc at its position — a target to hit, not a second bar — and is labeled above the Actual value, using compact notation (e.g. `Budget $39.8M`) since the interior narrows quickly above the baseline.
 
 The scale's endpoints (`0` and `scaleMax`, compactly formatted, e.g. `$45.8M`) are labeled under the arc for orientation.
 

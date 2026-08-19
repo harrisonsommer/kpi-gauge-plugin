@@ -87,13 +87,16 @@ export function Gauge({
     centerValue.length > COMFORTABLE_CHARS
       ? Math.max(size * 0.075, baseFontSize * (COMFORTABLE_CHARS / centerValue.length))
       : baseFontSize;
-  const captionFontSize = size * 0.075;
+  const captionFontSize = size * 0.07;
+  const actualLabelFontSize = size * 0.06;
 
   // Stacked bottom-up from the baseline (widest point of the interior
-  // half-disk): the big Actual value sits lowest, the smaller Budget
-  // caption sits just above it.
-  const actualY = cy - 14;
-  const captionY = actualY - fontSize / 2 - captionFontSize / 2 - 6;
+  // half-disk, where there's the most room): the "Actual" label sits
+  // lowest, the big Actual value above it, and the smaller Budget caption
+  // above that — each line has less horizontal room than the one below it.
+  const actualLabelY = cy - 10;
+  const actualY = actualLabelY - actualLabelFontSize / 2 - fontSize / 2 - 3;
+  const captionY = actualY - fontSize / 2 - captionFontSize / 2 - 4;
 
   const labelStyle = { fontSize: 10, fill: '#94a3b8' };
 
@@ -141,6 +144,15 @@ export function Gauge({
           style={{ fontSize, fontWeight: 700, fill: color }}
         >
           {centerValue}
+        </text>
+        <text
+          x={cx}
+          y={actualLabelY}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{ fontSize: actualLabelFontSize, fill: '#64748b' }}
+        >
+          Actual
         </text>
       </svg>
     </div>
