@@ -65,6 +65,10 @@ export type GaugeStatus = 'good' | 'neutral' | 'bad';
  */
 export interface Settings {
   subtitle: string;
+  /** Label shown above the Actual value, inside the gauge (default "Actual"). */
+  actualLabel: string;
+  /** Label shown above the Budget value, inside the gauge (default "Budget"). */
+  budgetLabel: string;
 
   numberFormat: NumberFormat;
   decimals: number;

@@ -91,6 +91,8 @@ Cosmetic settings are stored as JSON in the editor panel's hidden `settings` fie
 ```ts
 interface Settings {
   subtitle: string;               // e.g. "Variance to Budget"
+  actualLabel: string;             // e.g. "Actual" — shown under the Actual value
+  budgetLabel: string;             // e.g. "Budget" — shown above the Budget value
 
   numberFormat: 'auto' | 'percent' | 'currency' | 'number' | 'integer' | 'compact';
   decimals: number;
@@ -99,14 +101,17 @@ interface Settings {
   badColor: string;
   neutralColor: string;
   trackColor: string;             // the ring's unfilled track
+  targetColor: string;             // the budget target-line tick
 
   greenThresholdPct: number;       // signed-goodness at/above which the gauge reads "good"
   redThresholdPct: number;         // signed-goodness at/below which the gauge reads "bad"
 
   gaugeThickness: number;          // ring stroke width, px
-  showBudgetLabel: boolean;        // show "Budget $X" caption under the Actual value
+  showBudgetLabel: boolean;        // show the Budget label + value pair inside the gauge
 }
 ```
+
+Both label texts auto-shrink their font size (down to a floor) to fit the width available at their height inside the arc, so a longer custom label (e.g. "Actual Occupancy") still fits without overflowing.
 
 `numberFormat: 'auto'` infers the format from the Actual/Budget column's Sigma format metadata (`currency`, `percent`, `compact`, or falls back to `number`/`integer`). `percent` assumes the raw value is already a whole percentage (e.g. `87.0`, not `0.87`) — it appends `%` rather than multiplying by 100.
 

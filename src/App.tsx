@@ -108,6 +108,8 @@ function App() {
         thickness={settings.gaugeThickness}
         centerValue={formattedActual}
         budgetValue={settings.showBudgetLabel ? formattedBudget : undefined}
+        actualLabel={settings.actualLabel}
+        budgetLabel={settings.budgetLabel}
         minLabel={minLabel}
         maxLabel={maxLabel}
       />

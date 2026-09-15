@@ -2,6 +2,8 @@ import type { Settings } from '../sigma/types';
 
 export const DEFAULT_SETTINGS: Settings = {
   subtitle: 'Variance to Budget',
+  actualLabel: 'Actual',
+  budgetLabel: 'Budget',
 
   numberFormat: 'auto',
   decimals: 1,

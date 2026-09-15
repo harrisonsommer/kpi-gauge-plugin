@@ -90,6 +90,22 @@ export function SettingsPanel({ settings, onSave }: SettingsPanelProps) {
         <Field label="Subtitle">
           <input type="text" value={draft.subtitle} onChange={(e) => patch({ subtitle: e.target.value })} style={{ width: 130 }} />
         </Field>
+        <Field label="Actual label">
+          <input
+            type="text"
+            value={draft.actualLabel}
+            onChange={(e) => patch({ actualLabel: e.target.value })}
+            style={{ width: 130 }}
+          />
+        </Field>
+        <Field label="Budget label">
+          <input
+            type="text"
+            value={draft.budgetLabel}
+            onChange={(e) => patch({ budgetLabel: e.target.value })}
+            style={{ width: 130 }}
+          />
+        </Field>
         <Field label="Number format">
           <select value={draft.numberFormat} onChange={(e) => patch({ numberFormat: e.target.value as NumberFormat })}>
             {NUMBER_FORMAT_OPTIONS.map((o) => (

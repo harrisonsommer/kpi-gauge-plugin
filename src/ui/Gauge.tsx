@@ -14,9 +14,13 @@ export interface GaugeProps {
   /** Full-precision formatted Actual value, e.g. "$22,137,018". */
   centerValue: string;
   /** Full-precision formatted Budget value, e.g. "$335,765" — labeled
-   * "Budget" above it, stacked above the Actual value/label pair. Omit to
-   * hide both the label and value. */
+   * above it, stacked above the Actual value/label pair. Omit to hide both
+   * the label and value. */
   budgetValue?: string;
+  /** Label shown under the Actual value, e.g. "Actual". */
+  actualLabel: string;
+  /** Label shown above the Budget value, e.g. "Budget". */
+  budgetLabel: string;
   /** Formatted scale endpoints (e.g. "0" / "$45.0M"), shown under the arc. */
   minLabel?: string;
   maxLabel?: string;
@@ -76,6 +80,8 @@ export function Gauge({
   size = 160,
   centerValue,
   budgetValue,
+  actualLabel,
+  budgetLabel,
   minLabel,
   maxLabel,
 }: GaugeProps) {
@@ -123,13 +129,13 @@ export function Gauge({
   const estDyBudgetValue = estDyActualValue + actualValueBase / 2 + budgetValueBase / 2 + LINE_GAP;
   const estDyBudgetLabel = estDyBudgetValue + budgetValueBase / 2 + budgetLabelBase / 2 + LINE_GAP;
 
-  const actualLabelSize = fitFontSize('Actual', halfWidthAt(innerR, estDyActualLabel) * 1.8, actualLabelBase, labelMin);
+  const actualLabelSize = fitFontSize(actualLabel, halfWidthAt(innerR, estDyActualLabel) * 1.8, actualLabelBase, labelMin);
   const actualValueSize = fitFontSize(centerValue, halfWidthAt(innerR, estDyActualValue) * 1.8, actualValueBase, actualValueMin);
   const budgetValueSize = budgetValue
     ? fitFontSize(budgetValue, halfWidthAt(innerR, estDyBudgetValue) * 1.8, budgetValueBase, budgetValueMin)
     : 0;
   const budgetLabelSize = budgetValue
-    ? fitFontSize('Budget', halfWidthAt(innerR, estDyBudgetLabel) * 1.8, budgetLabelBase, labelMin)
+    ? fitFontSize(budgetLabel, halfWidthAt(innerR, estDyBudgetLabel) * 1.8, budgetLabelBase, labelMin)
     : 0;
 
   const dyActualLabel = BASELINE_GAP + actualLabelSize / 2;
@@ -178,7 +184,7 @@ export function Gauge({
             dominantBaseline="middle"
             style={{ fontSize: budgetLabelSize, fill: '#64748b' }}
           >
-            Budget
+            {budgetLabel}
           </text>
         )}
         {budgetValue && (
@@ -208,7 +214,7 @@ export function Gauge({
           dominantBaseline="middle"
           style={{ fontSize: actualLabelSize, fill: '#64748b' }}
         >
-          Actual
+          {actualLabel}
         </text>
       </svg>
     </div>
