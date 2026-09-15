@@ -113,7 +113,7 @@ interface Settings {
 
 Both label texts auto-shrink their font size (down to a floor) to fit the width available at their height inside the arc, so a longer custom label (e.g. "Actual Occupancy") still fits without overflowing.
 
-`numberFormat: 'auto'` infers the format from the Actual/Budget column's Sigma format metadata (`currency`, `percent`, `compact`, or falls back to `number`/`integer`). `percent` assumes the raw value is already a whole percentage (e.g. `87.0`, not `0.87`) — it appends `%` rather than multiplying by 100.
+`numberFormat: 'auto'` infers the format from the Actual/Budget column's Sigma format metadata (`currency`, `percent`, `compact`, or falls back to `number`/`integer`). `percent` treats the raw value as a 0–1 fraction (e.g. `0.87` → `"87.0%"`), matching how Sigma's own percent columns store their underlying value — it multiplies by 100 rather than just appending `%`.
 
 Malformed or partial JSON falls back to defaults (`src/settings/defaults.ts`) rather than breaking the plugin — see `src/settings/load.ts`.
 

@@ -20,7 +20,9 @@ interface Scenario {
  * metric that reads good despite a large negative variance. Pick one with
  * `?mock=1&scenario=<key>`. */
 const SCENARIOS: Record<string, Scenario> = {
-  good: { actual: 87.0, budget: 86.7, direction: 'higherIsBetter', title: 'Occupancy vs Budget', format: 'percent' },
+  // Percent values are fractions (0.87 = 87%), matching Sigma's own percent
+  // column storage — formatValue()/formatScaleLabel() multiply by 100.
+  good: { actual: 0.87, budget: 0.867, direction: 'higherIsBetter', title: 'Occupancy vs Budget', format: 'percent' },
   bad: { actual: 22137018, budget: 39818339, direction: 'higherIsBetter', title: 'Revenue vs Budget', format: 'currency' },
   neutral: { actual: 23.2, budget: 26.91, direction: 'higherIsBetter', title: 'RPSF vs Budget', format: 'number' },
   lowerIsBetterGood: { actual: 5025, budget: 7586, direction: 'lowerIsBetter', title: 'Vacates vs Budget', format: 'integer' },

@@ -71,11 +71,10 @@ function resolveFormat(format: NumberFormat, column: ColumnInfo | undefined): Ex
 }
 
 /**
- * Formats a raw numeric value for display. `percent` assumes the raw value
- * is already scaled to a whole percentage (e.g. 87 → "87.0%"), matching how
- * budget/actual metrics are typically stored in Sigma tables — not a 0–1
- * fraction, so it deliberately doesn't use Intl's `style: 'percent'`
- * (which would multiply by 100).
+ * Formats a raw numeric value for display. `percent` treats the raw value
+ * as a 0–1 fraction (e.g. 0.9 → "90.0%"), matching how Sigma's own percent
+ * columns store their underlying value — it multiplies by 100 rather than
+ * just appending `%`, unlike a raw pass-through.
  */
 export function formatValue(value: number, format: NumberFormat, decimals: number, column?: ColumnInfo): string {
   const resolved = resolveFormat(format, column);
@@ -88,7 +87,7 @@ export function formatValue(value: number, format: NumberFormat, decimals: numbe
         minimumFractionDigits: 0,
       }).format(value);
     case 'percent':
-      return `${value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}%`;
+      return `${(value * 100).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}%`;
     case 'integer':
       return Math.round(value).toLocaleString('en-US');
     case 'compact':
@@ -118,7 +117,7 @@ export function formatScaleLabel(value: number, format: NumberFormat, column?: C
         value,
       );
     case 'percent':
-      return `${Math.round(value)}%`;
+      return `${Math.round(value * 100)}%`;
     default:
       return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
   }
